@@ -8,5 +8,18 @@
 	<string>luaed</string>
 	<key>CPPrincipalClass</key>
 	<string>CPApplication</string>
+	<key>CPBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CPBundleTypeName</key>
+			<string>luaed</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>lua</string>
+			</array>
+			<key>CPDocumentClass</key>
+			<string>CHLuaDocument</string>
+		</dict>
+	</array>
 </dict>
 </plist>

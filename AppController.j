@@ -8,18 +8,16 @@
 
 @import <Foundation/CPObject.j>
 @import "CHCodeMirrorView.j"
+@import "CHLuaDocument.j"
 
 @implementation AppController : CPObject
 {
-    CPWindow            exampleWindow;
     CHCodeMirrorView    codeMirrorView;
     var                 editor;
 }
 
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
 {
-    [self createWindows];
-    [self createCodeEditor];
     [self createMenuBar];
 }
 
@@ -54,46 +52,82 @@
 }
 
 
-- (void)createWindows
-{
-
-    exampleWindow = [[CPWindow alloc] initWithContentRect:CGRectMake(80, 150, 500, 550)
-                                                 styleMask:CPTitledWindowMask|CPClosableWindowMask|CPMiniaturizableWindowMask|CPResizableWindowMask];
-
-    [exampleWindow orderFront:self];
-}
-
 -(void)connection:(CPURLConnection)connection
    didReceiveData:(CPString)data;
 {
     [codeMirrorView setCode:data];
-    [exampleWindow setTitle:"file.lua"];
+    [[codeMirrorView window] setTitle:"file.lua"];
 }
+
+
+- (void)decideShouldWindowClose:(id)sender returnCode:(id)returnCode contextInfo:(id)contextInfo
+{
+    /* Don't save */
+    if (returnCode == 1) {
+        [contextInfo close];
+        return;
+    }
+
+    /* Cancel the close */
+    if (returnCode == 2) {
+        return;
+    }
+
+    /* Save and close */
+    if (returnCode == 0) {
+        CPLog("Fixme!  Need to save document");
+        return;
+    }
+
+    CPLog.error("Unrecognized returnCode: %d", returnCode);
+}
+
 
 - (BOOL)windowShouldClose:(id)sender
 {
     if ([sender isDocumentEdited]) {
-        alert("Document was edited.  Not closing.");
+        var alrt = [CPAlert alertWithMessageText:@"Save changes before closing?"
+                                   defaultButton:@"Save changes"
+                                 alternateButton:@"Discard changes"
+                                     otherButton:@"Cancel"
+                       informativeTextWithFormat:@"This file contains unsaved changes.  Save changes before closing?"];
+        [alrt beginSheetModalForWindow:sender
+                         modalDelegate:self
+                        didEndSelector:@selector(decideShouldWindowClose:returnCode:contextInfo:)
+                           contextInfo:sender];
         return false;
     }
-    alert("Okay, closing.");
     return true;
 }
 
 
-- (void)createCodeEditor
+
+- (void)newFile:(id)sender
 {
-    var currentView = [exampleWindow contentView];
-    var currentRect = [currentView frame];
+    [[CPDocumentController sharedDocumentController]
+        openUntitledDocumentOfType:@"luaed"
+        display:YES];
+}
 
-    codeMirrorView = [[CHCodeMirrorView alloc] initWithFrame:currentRect];
 
-    [exampleWindow setContentView:codeMirrorView];
-    [exampleWindow setDelegate:self];
-    //[codeMirrorView setFrame:currentRect];
+- (void)openFile:(id)sender
+{
+    [[CPDocumentController sharedDocumentController]
+        openDocumentWithContentsOfURL:[CPURL URLWithString:@"file.lua"]
+                              display:YES
+                                error:nil];
+    /*
+    var newWindow = [[CPWindow alloc] initWithContentRect:CGRectMake(80, 150, 500, 550)
+                                                styleMask:CPTitledWindowMask|CPClosableWindowMask|CPMiniaturizableWindowMask|CPResizableWindowMask];
+    [newWindow orderFront:self];
+
+    codeMirrorView = [[CHCodeMirrorView alloc] initWithFrame:[[newWindow contentView] frame]];
+    [newWindow setContentView:codeMirrorView];
+    [newWindow setDelegate:self];
 
     [[CPURLConnection connectionWithRequest:[CPURLRequest
         requestWithURL:"file.lua"] delegate:self] start];
+        */
 }
 
 - (void)createMenuBar
@@ -108,23 +142,28 @@
     [newMenuItem setSubMenu:newMenu];
 
     newSubMenuItem = [[CPMenuItem alloc] initWithTitle:@"File" action:nil keyEquivalent:nil];
-    [newMenu addItem:[[CPMenuItem alloc] initWithTitle:@"New"
+    [newMenu addItem:[[CPMenuItem alloc] initWithTitle:@"New..."
                                                 action:@selector(newFile:)
                                          keyEquivalent:@"n"
                                            bundleImage:@"CPApplication/New.png"
                                   bundleAlternateImage:@"CPApplication/NewHighlighted.png"]];
-    [newMenu addItem:[[CPMenuItem alloc] initWithTitle:@"Open"
+    [newMenu addItem:[[CPMenuItem alloc] initWithTitle:@"Open..."
                                                 action:@selector(openFile:)
                                          keyEquivalent:@"o"
                                            bundleImage:@"CPApplication/Open.png"
                                   bundleAlternateImage:@"CPApplication/OpenHighlighted.png"]];
-    [newMenu addItem:[[CPMenuItem alloc] initWithTitle:@"Close"
+    [newMenu addItem:[[CPMenuItem alloc] initWithTitle:@"Close File"
                                                 action:@selector(closeFile:)
                                          keyEquivalent:@"w"
-                                           bundleImage:@"CPApplication/Close.png"
-                                  bundleAlternateImage:@"CPApplication/CloseHighlighted.png"]];
-    [newMenu addItem:[[CPMenuItem alloc] initWithTitle:@"Save"
+                                           bundleImage:@"CPApplication/Open.png"
+                                  bundleAlternateImage:@"CPApplication/OpenHighlighted.png"]];
+    [newMenu addItem:[[CPMenuItem alloc] initWithTitle:@"Save File"
                                                 action:@selector(saveFile:)
+                                         keyEquivalent:@"s"
+                                           bundleImage:@"CPApplication/Save.png"
+                                  bundleAlternateImage:@"CPApplication/SaveHighlighted.png"]];
+    [newMenu addItem:[[CPMenuItem alloc] initWithTitle:@"Save As..."
+                                                action:@selector(saveFileAs:)
                                          keyEquivalent:@"s"
                                            bundleImage:@"CPApplication/Save.png"
                                   bundleAlternateImage:@"CPApplication/SaveHighlighted.png"]];
@@ -132,18 +171,8 @@
     [mainMenu addItem:newSubMenuItem];
 
 
-    /*
-    newMenuItem = [[CPMenuItem alloc] initWithTitle:@"Save"
-                                             action:@selector(saveFile:)
-                                      keyEquivalent:@"s"
-                                        bundleImage:@"CPApplication/Save.png"
-                               bundleAlternateImage:@"CPApplication/SaveHighlighted.png"];
-    [newMenuItem setSubMenu:newMenu];
-    [mainMenu addItem:newMenuItem];
 
 
-    [mainMenu addItem:newMenu];
-    */
 
     [mainMenu addItem:[CPMenuItem separatorItem]];
 

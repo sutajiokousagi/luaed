@@ -30,13 +30,14 @@
     DOMElement  _DOMDivElement;
 }
 
+var extra;
+
 - (id)initWithFrame:(CGRect)aFrame
 {
     self = [super initWithFrame:aFrame];
 
     if (self)
     {
-        _DOMElement.style.height = "900px";
         editor = CodeMirror(_DOMElement, {
             lineWrapping: false,
             mode: "lua",
@@ -54,7 +55,13 @@
 
 - (void) setCode:(CGString)text
 {
+    [self setFrame:[self frame]];
     editor.setValue(text);
+}
+
+- (void)becomeKeyWindow
+{
+    editor.refresh();
 }
 
 - (void)display {
@@ -78,13 +85,11 @@
 
 - (BOOL)becomeFirstResponder
 {
-    CPLog("Become first responder");
     return YES;
 }
 
 - (void)scrollWheel:(CPEvent)anEvent
 {
-    CPLog("Scrolling");
     /* On WebKit, the _DOMScrollingElement prevents the editor from
      * getting more than one scroll event.  Fake it, if necessary.
      */
@@ -113,7 +118,7 @@
 
 - (void)keyDown:(CPEvent)anEvent
 {
-    CPLog("Keydown event: %@", anEvent);
+    [[self window] setDocumentEdited:YES];
     // CPTextField uses an HTML input element to take the input so we need to
     // propagate the dom event so the element is updated. This has to be done
     // before interpretKeyEvents: though so individual commands have a chance
