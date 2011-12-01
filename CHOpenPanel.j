@@ -80,6 +80,7 @@
     var listScrollView = [[CPScrollView alloc] initWithFrame:CGRectMake(15,
             40, 470, CGRectGetHeight(frame) - 85)];
     [listScrollView setAutohidesScrollers:YES];
+    [listScrollView setHasHorizontalScroller:NO];
     [listScrollView setAutoresizingMask:CPViewHeightSizable];
     [[listScrollView contentView] setBackgroundColor:[CPColor colorWithRed:213.0/255.0 green:221.0/255.0 blue:230.0/255.0 alpha:1.0]];
 
