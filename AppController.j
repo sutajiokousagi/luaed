@@ -10,6 +10,7 @@
 @import "CHCodeMirrorView.j"
 @import "CHLuaDocument.j"
 @import "CHSavePanel.j"
+@import "CHOpenPanel.j"
 
 @implementation AppController : CPObject
 {
@@ -138,11 +139,29 @@
 
 - (void)openFile:(id)sender
 {
+    [CHOpenPanel openPanelForWindow:nil
+                            fileURL:[CPURL URLWithString:[CPString stringWithFormat:@"/file/%@", projectName]]
+                      modalDelegate:self
+                     didEndSelector:@selector(openEnded:fileName:contextInfo:)
+                        contextInfo:nil];
+    /*
     [[CPDocumentController sharedDocumentController]
         openDocumentWithContentsOfURL:[CPURL URLWithString:@"file.lua"]
                               display:YES
                                 error:nil];
+    */
 }
+
+- (void)openEnded:(id)sender fileName:(CPString)fileName contextInfo:(id)ctx
+{
+    [[CPDocumentController sharedDocumentController]
+        openDocumentWithContentsOfURL:[CPURL URLWithString:[CPString stringWithFormat:@"/file/%@/%@", projectName, fileName]]
+                              display:YES
+                                error:nil];
+}
+
+
+
 
 - (void)createMenuBar
 {
