@@ -36,36 +36,15 @@
     return [super initWithType:aType error:anError];
 }
 
-/*
-- (id)initWithFrame:(CGRect)aFrame
-{
-    self = [super initWithFrame:aFrame];
-
-    if (self)
-    {
-        _DOMElement.style.height = "900px";
-        editor = CodeMirror(_DOMElement, {
-            lineWrapping: false,
-            mode: "lua",
-            lineNumbers: true,
-            tabMode: "indent",
-            matchBrackets: true,
-            theme: "neat",
-            value: "",
-        });
-        [self setFrame:aFrame];
-    }
-
-    return self;
-}
-*/
-
 - (void)readFromData:(CPData)aData ofType:(CPString)aType error:(CPError)anError
 {
-    CPLog(@"Reading from data: %@  Type: %@", aData, aType);
     editorText = [aData rawString];
 }
 
+- (CPData)dataOfType:(CPString)aType error:({CPError})anError
+{
+    return [CPData dataWithRawString:[editor code]];
+}
 
 - (void)makeWindowControllers
 {
@@ -78,9 +57,9 @@
     [self addWindowController:controller];
 
     editor = [[CHCodeMirrorView alloc] initWithFrame:contentRect];
-    CPLog(@"Making window controller.  Window size: %@",
-            CPStringFromRect([aWindow frame]));
+    [editor setDocument:self];
 
+    /* If editorText is set, then we're loading from the Internet */
     if (editorText) {
         [editor setCode:editorText];
         editorText = nil;
@@ -89,14 +68,8 @@
         [editor setCode:@""];
 
     [aWindow setContentView:editor];
-    [aWindow setDelegate:self];
 
-}
-
-
-- (void) setCode:(CGString)text
-{
-    [self setFrame:[self frame]];
-    editor.setValue(text);
+    /* Let the main app controller handle window events */
+    [aWindow setDelegate:[CPApp delegate]];
 }
 

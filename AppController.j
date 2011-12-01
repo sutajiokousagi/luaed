@@ -9,54 +9,77 @@
 @import <Foundation/CPObject.j>
 @import "CHCodeMirrorView.j"
 @import "CHLuaDocument.j"
+@import "CHSavePanel.j"
 
 @implementation AppController : CPObject
 {
     CHCodeMirrorView    codeMirrorView;
     var                 editor;
+    var                 projectName;
+    var                 currentDoc;
+    var                 currentCtx;
+    var                 _fileNameBox;
+    SEL                 resultSel;
 }
 
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
 {
+    /* Hack for now -- hardcode the project name to dev-proj */
+    projectName = @"dev-proj";
     [self createMenuBar];
 }
 
-- (void)newDocument:(var)sender
+- (CPString)getFilePath:(CPString)fileName
 {
-    CPLog("Creating a new document, from " + sender);
+    return [CPString stringWithFormat:@"/file/%@/%@", projectName, fileName];
 }
 
-- (void)openDocument:(var)sender
+- (void)saveDidFinish:(id)sender didSave:(BOOL)didSave contextInfo:(id)ctx
 {
-    CPLog("Opening a document, from " + sender);
+    CPLog(@"Saved? %d", didSave);
 }
 
-- (void)saveDocument:(var)sender
+/* Actually save the file on the server */
+- (void)saveFile:(var)sender
 {
     CPLog("Saving a document, from %@", sender);
+    var doc = [[[CPApp mainWindow] contentView] document];
+    if (![doc fileURL])
+        return [self saveFileAs:sender];
+    [doc saveToURL:[self getFilePath:[doc fileURL]]
+            ofType:@"luaed"
+  forSaveOperation:CPSaveOperation
+          delegate:self
+   didSaveSelector:@selector(saveDidFinish:didSave:contextInfo:)
+       contextInfo:nil];
 }
 
-- (void)saveDocumentAs:(var)sender
+- (void)saveFileAs:(var)sender
 {
-    var panel = [CPSavePanel savePanel];
-    [panel setFloatingPanel:YES];
-
-    var i = [panel orderFront:self];
-    CPLog("Saving a document, from " + sender + " to " + i + ", URL " +
-            [panel URL]);
+    var doc = [[[CPApp mainWindow] contentView] document];
+    [CHSavePanel savePanelForWindow:[CPApp mainWindow]
+                          extension:@"lua"
+                      modalDelegate:self
+                     didEndSelector:@selector(saveAsEnded:fileName:contextInfo:)
+                        contextInfo:doc];
+    return;
 }
+
+/* Called when the "Save File As" panel closes */
+- (void)saveAsEnded:(id)sender fileName:(CPString)fileName contextInfo:(id)ctx
+{
+    CPLog(@"Save As ended.  Filename: %@  Context: %@", fileName, ctx);
+    if (!fileName)
+        return;
+    [ctx setFileURL:[CPURL URLWithString:fileName]];
+    [self saveFile:sender];
+}
+
+
 
 - (void)closeFile:(id)sender
 {
-    [[CPApp mainWindow] close];
-}
-
-
--(void)connection:(CPURLConnection)connection
-   didReceiveData:(CPString)data;
-{
-    [codeMirrorView setCode:data];
-    [[codeMirrorView window] setTitle:"file.lua"];
+    [[CPApp mainWindow] performClose:sender];
 }
 
 
@@ -75,7 +98,10 @@
 
     /* Save and close */
     if (returnCode == 0) {
-        CPLog("Fixme!  Need to save document");
+        var doc = [[[CPApp mainWindow] contentView] document];
+        [self doSave:doc
+           didSaveSelector:@selector(finishSave:)
+                   context:nil];
         return;
     }
 
@@ -116,18 +142,6 @@
         openDocumentWithContentsOfURL:[CPURL URLWithString:@"file.lua"]
                               display:YES
                                 error:nil];
-    /*
-    var newWindow = [[CPWindow alloc] initWithContentRect:CGRectMake(80, 150, 500, 550)
-                                                styleMask:CPTitledWindowMask|CPClosableWindowMask|CPMiniaturizableWindowMask|CPResizableWindowMask];
-    [newWindow orderFront:self];
-
-    codeMirrorView = [[CHCodeMirrorView alloc] initWithFrame:[[newWindow contentView] frame]];
-    [newWindow setContentView:codeMirrorView];
-    [newWindow setDelegate:self];
-
-    [[CPURLConnection connectionWithRequest:[CPURLRequest
-        requestWithURL:"file.lua"] delegate:self] start];
-        */
 }
 
 - (void)createMenuBar

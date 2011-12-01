@@ -28,6 +28,7 @@
 {
     var         editor;
     DOMElement  _DOMDivElement;
+    CPDocument  myDoc;
 }
 
 var extra;
@@ -53,10 +54,25 @@ var extra;
     return self;
 }
 
-- (void) setCode:(CGString)text
+- (void)setCode:(CGString)text
 {
     [self setFrame:[self frame]];
     editor.setValue(text);
+}
+
+- (CPString)code
+{
+    return editor.getValue();
+}
+
+- (void)setDocument:(CPDocument)doc
+{
+    myDoc = doc;
+}
+
+- (CPDocument)document
+{
+    return myDoc;
 }
 
 - (void)becomeKeyWindow
@@ -119,6 +135,8 @@ var extra;
 - (void)keyDown:(CPEvent)anEvent
 {
     [[self window] setDocumentEdited:YES];
+    if (myDoc)
+        [myDoc updateChangeCount:CPChangeDone];
     // CPTextField uses an HTML input element to take the input so we need to
     // propagate the dom event so the element is updated. This has to be done
     // before interpretKeyEvents: though so individual commands have a chance
