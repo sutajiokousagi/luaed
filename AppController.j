@@ -161,10 +161,11 @@
 
 - (void)openEnded:(id)sender fileName:(CPString)fileName contextInfo:(id)ctx
 {
-    [[CPDocumentController sharedDocumentController]
-        openDocumentWithContentsOfURL:[CPURL URLWithString:[CPString stringWithFormat:@"/file/%@/%@", projectName, fileName]]
-                              display:YES
-                                error:nil];
+    if (fileName)
+        [[CPDocumentController sharedDocumentController]
+            openDocumentWithContentsOfURL:[CPURL URLWithString:[CPString stringWithFormat:@"/file/%@/%@", projectName, fileName]]
+                                  display:YES
+                                    error:nil];
 }
 
 
