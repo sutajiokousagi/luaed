@@ -21,6 +21,8 @@
     var                 currentCtx;
     var                 _fileNameBox;
     SEL                 resultSel;
+
+    var                 shouldCloseAfterSave;
 }
 
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
@@ -28,11 +30,6 @@
     /* Hack for now -- hardcode the project name to dev-proj */
     projectName = @"dev-proj";
     [self createMenuBar];
-}
-
-- (CPString)getFilePath:(CPString)fileName
-{
-    return [CPString stringWithFormat:@"/file/%@/%@", projectName, fileName];
 }
 
 - (void)saveDidFinish:(id)sender didSave:(BOOL)didSave contextInfo:(id)ctx
@@ -43,16 +40,20 @@
 /* Actually save the file on the server */
 - (void)saveFile:(var)sender
 {
-    CPLog("Saving a document, from %@", sender);
     var doc = [[[CPApp mainWindow] contentView] document];
+    CPLog("Saving a document %@, from %@", doc, sender);
     if (![doc fileURL])
         return [self saveFileAs:sender];
-    [doc saveToURL:[self getFilePath:[doc fileURL]]
+    [doc saveToURL:[doc fileURL]
             ofType:@"luaed"
   forSaveOperation:CPSaveOperation
           delegate:self
    didSaveSelector:@selector(saveDidFinish:didSave:contextInfo:)
        contextInfo:nil];
+
+    if (shouldCloseAfterSave)
+        [[CPApp mainWindow] performClose:sender];
+    shouldCloseAfterSave = NO;
 }
 
 - (void)saveFileAs:(var)sender
@@ -70,10 +71,17 @@
 - (void)saveAsEnded:(id)sender fileName:(CPString)fileName contextInfo:(id)ctx
 {
     CPLog(@"Save As ended.  Filename: %@  Context: %@", fileName, ctx);
-    if (!fileName)
+    if (!fileName) {
+        shouldCloseAfterSave = NO;
         return;
+    }
+
     [ctx setFileURL:[CPURL URLWithString:fileName]];
     [self saveFile:sender];
+
+    if (shouldCloseAfterSave)
+        [[CPApp mainWindow] performClose:sender];
+    shouldCloseAfterSave = NO;
 }
 
 
@@ -100,9 +108,8 @@
     /* Save and close */
     if (returnCode == 0) {
         var doc = [[[CPApp mainWindow] contentView] document];
-        [self doSave:doc
-           didSaveSelector:@selector(finishSave:)
-                   context:nil];
+        shouldCloseAfterSave = YES;
+        [self saveFile:sender];
         return;
     }
 
