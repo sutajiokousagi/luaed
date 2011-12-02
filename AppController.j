@@ -76,7 +76,7 @@
         return;
     }
 
-    [ctx setFileURL:[CPURL URLWithString:fileName]];
+    [ctx setFileURL:[CPURL URLWithString:[CPString stringWithFormat:@"/file/%@/%@", projectName, fileName]]];
     [self saveFile:sender];
 
     if (shouldCloseAfterSave)
