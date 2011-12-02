@@ -181,6 +181,11 @@
     [_openButton setEnabled:YES];
 }
 
+-(void)collectionView:(CPCollectionView)collectionView didDoubleClickOnItemAtIndex:(int)index
+{
+    [self handleOpenClicked:_openButton];
+}
+
 
 @end
 
