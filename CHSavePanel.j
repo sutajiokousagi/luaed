@@ -152,7 +152,14 @@
 
 
 - (void)controlTextDidChange:(id)sender {
-    if ([[_fileNameBox stringValue] length] > 0)
+    /* Disallow slashes in filenames */
+    str = [_fileNameBox stringValue];
+    if (!CPEmptyRange([str rangeOfString:@"/"])) {
+        str = [str stringByReplacingOccurrencesOfString:@"/" withString:@""];
+        [_fileNameBox setStringValue:str];
+    }
+
+    if ([str length] > 0)
         [_saveButton setEnabled:YES];
     else
         [_saveButton setEnabled:NO];
