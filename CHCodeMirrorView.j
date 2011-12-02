@@ -132,11 +132,15 @@ var extra;
     [[[self window] platformWindow] _propagateCurrentDOMEvent:YES];
 }
 
-- (void)keyDown:(CPEvent)anEvent
+- (void)insertText:(CPString)aString
 {
     [[self window] setDocumentEdited:YES];
     if (myDoc)
         [myDoc updateChangeCount:CPChangeDone];
+}
+
+- (void)keyDown:(CPEvent)anEvent
+{
     // CPTextField uses an HTML input element to take the input so we need to
     // propagate the dom event so the element is updated. This has to be done
     // before interpretKeyEvents: though so individual commands have a chance
