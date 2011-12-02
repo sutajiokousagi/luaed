@@ -30,12 +30,6 @@
     var         editorText;
 }
 
-- (id)initWithType:(CPString)aType error:({CPError})anError
-{
-    CPLog("Initializing with type %@", aType);
-    return [super initWithType:aType error:anError];
-}
-
 - (void)readFromData:(CPData)aData ofType:(CPString)aType error:(CPError)anError
 {
     editorText = [aData rawString];
@@ -48,11 +42,24 @@
 
 - (void)makeWindowControllers
 {
-    // debugger;
-    var contentRect = CGRectMake(100.0,  100.0, 400.0, 300.0);
-    var aWindow = [[CPWindow alloc] initWithContentRect:contentRect
-                                              styleMask:CPTitledWindowMask|CPClosableWindowMask|CPMiniaturizableWindowMask|CPResizableWindowMask];
-    var controller = [[CPWindowController alloc] initWithWindow:aWindow];
+    var currentRect, contentRect, aWindow, controller;
+    var flags;
+
+    flags  = CPTitledWindowMask|CPClosableWindowMask;
+    flags |= CPMiniaturizableWindowMask|CPResizableWindowMask;
+
+    if ([CPApp mainWindow]) {
+        currentRect = [[CPApp mainWindow] frame];
+        contentRect = CGRectMake(currentRect.origin.x+20.0,
+                                 currentRect.origin.y+50.0,
+                                 500.0, 300.0);
+    }
+    else {
+        contentRect = CGRectMake(100.0,  100.0, 500.0, 300.0);
+    }
+    aWindow = [[CPWindow alloc] initWithContentRect:contentRect
+                                          styleMask:flags];
+    controller = [[CPWindowController alloc] initWithWindow:aWindow];
 
     [self addWindowController:controller];
 
