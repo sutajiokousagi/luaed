@@ -26,7 +26,7 @@ app ("luaed", function(task)
     task.setAuthor("Your Company");
     task.setEmail("feedback @nospam@ yourcompany.com");
     task.setSummary("luaed");
-    task.setSources((new FileList("**/*.j")).exclude(FILE.join("Build", "**")));
+    task.setSources((new FileList("**/*.{j,js}")).exclude(FILE.join("Build", "**")));
     task.setResources(new FileList("Resources/**"));
     task.setIndexFilePath("index.html");
     task.setInfoPlistPath("Info.plist");

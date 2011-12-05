@@ -21,6 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+@import "codemirror.js"
+
 /*!
     @ingroup appkit
 */
@@ -30,8 +32,6 @@
     DOMElement  _DOMDivElement;
     CPDocument  myDoc;
 }
-
-var extra;
 
 - (id)initWithFrame:(CGRect)aFrame
 {
@@ -151,3 +151,5 @@ var extra;
 
     [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
 }
+
+@end
