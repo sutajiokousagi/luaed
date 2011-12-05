@@ -63,7 +63,7 @@
 
     [self addWindowController:controller];
 
-    editor = [[CHCodeMirrorView alloc] initWithFrame:contentRect];
+    editor = [[CHCodeMirrorLuaView alloc] initWithFrame:contentRect];
     [editor setDocument:self];
 
     /* If editorText is set, then we're loading from the Internet */

@@ -41,12 +41,13 @@
     {
         editor = CodeMirror(_DOMElement, {
             lineWrapping: false,
-            mode: "lua",
+            mode: "null",
             lineNumbers: true,
             tabMode: "indent",
             matchBrackets: true,
             theme: "neat",
             value: "",
+            readOnly: true,
         });
         [self setFrame:aFrame];
     }
@@ -54,10 +55,26 @@
     return self;
 }
 
-- (void)setCode:(CGString)text
+- (void)setMode:(CPString)mode
+{
+    editor.setOption("mode", mode);
+}
+
+- (void)setCode:(CPString)text
 {
     [self setFrame:[self frame]];
     editor.setValue(text);
+}
+
+- (void)setEditable:(BOOL)isEditable
+{
+    //[super setEditable:isEditable];
+    editor.setOption("readOnly", !isEditable);
+}
+
+- (void)appendCode:(CPString)code
+{
+    editor.replaceRange(code, {line: 99999999, ch: 0});
 }
 
 - (CPString)code
@@ -153,4 +170,18 @@
     [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
 }
 
+@end
+
+@implementation CHCodeMirrorLuaView : CHCodeMirrorView
+- (id)initWithFrame:(CGRect)aFrame
+{
+    self = [super initWithFrame:aFrame];
+
+    if (self)
+    {
+        [self setMode:@"lua"];
+        [self setEditable:YES];
+    }
+    return self;
+}
 @end

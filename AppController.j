@@ -11,6 +11,7 @@
 @import "CHLuaDocument.j"
 @import "CHSavePanel.j"
 @import "CHOpenPanel.j"
+@import "CHLuaBridge.j"
 
 @implementation AppController : CPObject
 {
@@ -23,6 +24,7 @@
     SEL                 resultSel;
 
     var                 shouldCloseAfterSave;
+    var                 codeOutput;
 }
 
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
@@ -169,18 +171,61 @@
 }
 
 
+- (void)runCode:(id)sender
+{
+    var doc = [[[CPApp mainWindow] contentView] document];
+
+    if (!codeOutput) {
+        var currentRect, contentRect, controller;
+        var flags;
+
+        flags  = CPTitledWindowMask|CPClosableWindowMask;
+        flags |= CPMiniaturizableWindowMask|CPResizableWindowMask;
+
+        if ([CPApp mainWindow]) {
+            currentRect = [[CPApp mainWindow] frame];
+            contentRect = CGRectMake(currentRect.origin.x+20.0,
+                                    currentRect.origin.y+50.0,
+                                    500.0, 300.0);
+        }
+        else {
+            contentRect = CGRectMake(100.0,  100.0, 500.0, 300.0);
+        }
+        codeOutput = [[CPWindow alloc] initWithContentRect:contentRect
+                                              styleMask:flags];
+        var codeMirrorView = [[CHCodeMirrorView alloc] initWithFrame:[[codeOutput contentView] frame]];
+        [codeOutput setContentView:codeMirrorView];
+        [codeOutput orderFront:self];
+    }
+    if (doc && [doc fileURL]) {
+        var runURLParts = [[doc fileURL] pathComponents];
+        var pathParts = [runURLParts count];
+        bridge = [[CHLuaBridge alloc] initWithFilename:[runURLParts objectAtIndex:pathParts-1]
+                                               project:[runURLParts objectAtIndex:pathParts-2]
+                                              delegate:self];
+    }
+    else {
+        CPLog(@"File hasn't yet been saved");
+    }
+}
+
+- (void)luaBridge:(CHLuaBridge)bridge gotStdout:(CPString)stdout
+{
+    CPLog(@"Appending code to stdout: %@", stdout);
+    [[codeOutput contentView] appendCode:stdout];
+}
+
+
 
 
 - (void)createMenuBar
 {
     var mainMenu = [[CPMenu alloc] initWithTitle:@"MainMenu"];
-    var newMenuItem, newSubMenuItem;
+    var newSubMenuItem;
     var newMenu;
 
 
     newMenu = [[CPMenu alloc] initWithTitle:@"File"];
-
-    [newMenuItem setSubMenu:newMenu];
 
     newSubMenuItem = [[CPMenuItem alloc] initWithTitle:@"File" action:nil keyEquivalent:nil];
     [newMenu addItem:[[CPMenuItem alloc] initWithTitle:@"New..."
@@ -211,6 +256,17 @@
     [newSubMenuItem setSubmenu:newMenu];
     [mainMenu addItem:newSubMenuItem];
 
+
+
+    newMenu = [[CPMenu alloc] initWithTitle:@"Lua"];
+    newSubMenuItem = [[CPMenuItem alloc] initWithTitle:@"Lua" action:nil keyEquivalent:nil];
+    [newMenu addItem:[[CPMenuItem alloc] initWithTitle:@"Run"
+                                                action:@selector(runCode:)
+                                         keyEquivalent:@"r"
+                                           bundleImage:@"CPApplication/New.png"
+                                  bundleAlternateImage:@"CPApplication/NewHighlighted.png"]];
+    [newSubMenuItem setSubmenu:newMenu];
+    [mainMenu addItem:newSubMenuItem];
 
 
 
