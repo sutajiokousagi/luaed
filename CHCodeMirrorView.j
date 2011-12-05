@@ -68,13 +68,13 @@
 
 - (void)setEditable:(BOOL)isEditable
 {
-    //[super setEditable:isEditable];
     editor.setOption("readOnly", !isEditable);
 }
 
 - (void)appendCode:(CPString)code
 {
     editor.replaceRange(code, {line: 99999999, ch: 0});
+    editor.setCursor(9999999999, 0);
 }
 
 - (CPString)code
