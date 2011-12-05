@@ -44,8 +44,15 @@
 
 -(void)connection:(CPURLConnection)connection didReceiveResponse:(CPHTTPURLResponse)response
 {
-    if ([response statusCode] == 500)
+    if ([response statusCode] != 200) {
+        if ([response statusCode] == 204) {
+            CPLog(@"Connction closed");
+        }
+        else {
+            CPLog(@"Error occurred");
+        }
         fd = -1;
+    }
 }
 
 -(void)connection:(CPURLConnection)connection didReceiveData:(CPString)data
@@ -55,7 +62,7 @@
         stage = 2;
         realURL = [CPString stringWithFormat:@"/lua/stdio/%d", fd];
     }
-    else {
+    else if (fd >= 0) {
         if ([delegate respondsToSelector:@selector(luaBridge:gotStdout:)])
             [delegate luaBridge:self gotStdout:data];
     }
