@@ -78,6 +78,7 @@
 - (void)becomeKeyWindow
 {
     editor.refresh();
+    editor.focus();
 }
 
 - (void)display {
