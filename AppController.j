@@ -195,14 +195,18 @@
                                               styleMask:flags];
         var codeMirrorView = [[CHCodeMirrorView alloc] initWithFrame:[[codeOutput contentView] frame]];
         [codeOutput setContentView:codeMirrorView];
-        [codeOutput orderFront:self];
     }
     if (doc && [doc fileURL]) {
+        /* Decompose the URL and pass it to the bridge */
         var runURLParts = [[doc fileURL] pathComponents];
         var pathParts = [runURLParts count];
         bridge = [[CHLuaBridge alloc] initWithFilename:[runURLParts objectAtIndex:pathParts-1]
                                                project:[runURLParts objectAtIndex:pathParts-2]
                                               delegate:self];
+
+        /* Show the output window */
+        [codeOutput orderFront:self];
+        [codeOutput setTitle:@"Console Output"];
     }
     else {
         CPLog(@"File hasn't yet been saved");
@@ -211,8 +215,12 @@
 
 - (void)luaBridge:(CHLuaBridge)bridge gotStdout:(CPString)stdout
 {
-    CPLog(@"Appending code to stdout: %@", stdout);
     [[codeOutput contentView] appendCode:stdout];
+}
+
+- (void)luaBridge:(CHLuaBridge)bridge programEnded:(int)result
+{
+        [codeOutput setTitle:@"Console Output (program terminated)"];
 }
 
 
