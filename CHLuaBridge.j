@@ -7,7 +7,6 @@
 
     int         stage;  // 1: Starting up  2: Established
     id          delegate;
-    int c;
 }
 
 
@@ -15,7 +14,6 @@
 {
     self = [super init];
     if (self) {
-        c = 0;
         filename = aFilename;
         project = aProject;
         fd = -1;
@@ -69,7 +67,7 @@
 }
 
 -(void)connectionDidFinishLoading:(CPURLConnection)connection {
-    if (fd >= 0 && c++<15)
+    if (fd >= 0)
         [[CPURLConnection alloc] initWithRequest:[CPURLRequest requestWithURL:[CPURL URLWithString:realURL]]
                                         delegate:self
                                 startImmediately:YES];
