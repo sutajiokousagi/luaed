@@ -106,14 +106,6 @@ CodeMirror = (function() {
     // which point we can't mess with it anymore. Context menu is
     // handled in onMouseDown for Gecko.
     if (!gecko) connect(scroller, "contextmenu", onContextMenu);
-    /*
-    connect(scroller, "scroll", function() {
-      CPLog("In codemirror, scrolling: " + this);
-      updateDisplay([]);
-      if (options.fixedGutter) gutter.style.left = scroller.scrollLeft + "px";
-      if (options.onScroll) options.onScroll(instance);
-    });
-    */
     connect(window, "resize", function() {updateDisplay(true);});
     connect(input, "keyup", operation(onKeyUp));
     connect(input, "input", function() {fastPoll(curKeyId);});
