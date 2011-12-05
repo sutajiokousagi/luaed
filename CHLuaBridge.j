@@ -45,8 +45,12 @@
     if ([response statusCode] != 200) {
         if ([response statusCode] == 204) {
             CPLog(@"Connction closed");
+            if ([delegate respondsToSelector:@selector(luaBridge:programEnded:)])
+                [delegate luaBridge:self programEnded:0];
         }
         else {
+            if ([delegate respondsToSelector:@selector(luaBridge:programEnded:)])
+                [delegate luaBridge:self programEnded:1];
             CPLog(@"Error occurred");
         }
         fd = -1;
