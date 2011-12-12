@@ -24,7 +24,6 @@
     SEL                 resultSel;
 
     var                 shouldCloseAfterSave;
-    var                 codeOutput;
 }
 
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
@@ -173,57 +172,8 @@
 
 - (void)runCode:(id)sender
 {
-    var doc = [[[CPApp mainWindow] contentView] document];
-
-    if (!codeOutput) {
-        var currentRect, contentRect, controller;
-        var flags;
-
-        flags  = CPTitledWindowMask|CPClosableWindowMask;
-        flags |= CPMiniaturizableWindowMask|CPResizableWindowMask;
-
-        if ([CPApp mainWindow]) {
-            currentRect = [[CPApp mainWindow] frame];
-            contentRect = CGRectMake(currentRect.origin.x+20.0,
-                                    currentRect.origin.y+50.0,
-                                    500.0, 300.0);
-        }
-        else {
-            contentRect = CGRectMake(100.0,  100.0, 500.0, 300.0);
-        }
-        codeOutput = [[CPWindow alloc] initWithContentRect:contentRect
-                                              styleMask:flags];
-        var codeMirrorView = [[CHCodeMirrorView alloc] initWithFrame:[[codeOutput contentView] frame]];
-        [codeOutput setContentView:codeMirrorView];
-    }
-    if (doc && [doc fileURL]) {
-        /* Decompose the URL and pass it to the bridge */
-        var runURLParts = [[doc fileURL] pathComponents];
-        var pathParts = [runURLParts count];
-        bridge = [[CHLuaBridge alloc] initWithFilename:[runURLParts objectAtIndex:pathParts-1]
-                                               project:[runURLParts objectAtIndex:pathParts-2]
-                                              delegate:self];
-
-        /* Show the output window */
-        [codeOutput orderFront:self];
-        [codeOutput setTitle:@"Console Output"];
-    }
-    else {
-        CPLog(@"File hasn't yet been saved");
-    }
+    [[[[CPApp mainWindow] contentView] document] runCode:sender];
 }
-
-- (void)luaBridge:(CHLuaBridge)bridge gotStdout:(CPString)stdout
-{
-    [[codeOutput contentView] appendCode:stdout];
-}
-
-- (void)luaBridge:(CHLuaBridge)bridge programEnded:(int)result
-{
-        [codeOutput setTitle:@"Console Output (program terminated)"];
-}
-
-
 
 
 - (void)createMenuBar

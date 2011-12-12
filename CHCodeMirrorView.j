@@ -31,6 +31,8 @@
     var         editor;
     DOMElement  _DOMDivElement;
     CPDocument  myDoc;
+    id          delegate;
+    CPMutableDictionary breakpoints;
 }
 
 - (id)initWithFrame:(CGRect)aFrame
@@ -39,6 +41,7 @@
 
     if (self)
     {
+        breakpoints = [[CPMutableDictionary alloc] init];
         editor = CodeMirror(_DOMElement, {
             lineWrapping: false,
             mode: "null",
@@ -49,10 +52,35 @@
             value: "",
             readOnly: true,
         });
+        editor.setOption("onGutterClick", function(obj, line, evt) {
+                [self onGutterClick:line];
+                });
         [self setFrame:aFrame];
     }
 
     return self;
+}
+
+- (void)setDelegate:(id)sender
+{
+    delegate = sender;
+}
+
+- (void)onGutterClick:(int)line
+{
+    if ([breakpoints containsKey:line]) {
+        editor.setMarker(line, null, null);
+        [breakpoints removeObjectForKey:line];
+        if (delegate && [delegate respondsToSelector:@selector(setBreakpoint:)])
+            [delegate setBreakpoint:line];
+
+    }
+    else {
+        editor.setMarker(line, "&bull;", null);
+        [breakpoints setObject:1 forKey:line];
+        if (delegate && [delegate respondsToSelector:@selector(clearBreakpoint:)])
+            [delegate clearBreakpoint:line];
+    }
 }
 
 - (void)setMode:(CPString)mode
